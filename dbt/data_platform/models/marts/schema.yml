@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: "Customer dimension prepared for PostgreSQL Gold."
+
+    columns:
+      - name: customer_id
+        data_tests:
+          - unique
+          - not_null
+
+      - name: customer_name
+        data_tests:
+          - not_null

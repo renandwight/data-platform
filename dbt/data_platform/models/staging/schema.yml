@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Staging model for customer data stored in MinIO Silver."
+
+    columns:
+      - name: customer_id
+        description: "Unique customer identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_name
+        description: "Customer name."
+        data_tests:
+          - not_null
+
+      - name: created_date
+        description: "Date the customer record was created."
+        data_tests:
+          - not_null

@@ -1,0 +1,72 @@
+# ==========================================
+# Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+wheels/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+.coverage
+htmlcov/
+
+# ==========================================
+# Virtual environments
+# ==========================================
+.venv/
+venv/
+env/
+
+# ==========================================
+# Local environment variables and secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+!.env.fish.example
+*.pem
+*.key
+
+# ==========================================
+# DuckDB
+# ==========================================
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp/
+*.db-wal
+
+# ==========================================
+# dbt
+# ==========================================
+**/target/
+**/dbt_packages/
+**/logs/
+**/profiles.yml
+
+# ==========================================
+# Jupyter notebooks
+# ==========================================
+.ipynb_checkpoints/
+
+# ==========================================
+# IDE and operating system
+# ==========================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# Temporary files
+# ==========================================
+*.log
+*.tmp
+*.bak
+*.swp
+*~
