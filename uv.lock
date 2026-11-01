@@ -245,6 +245,7 @@ dependencies = [
     { name = "pyiceberg", extra = ["pyarrow", "s3fs"] },
     { name = "pytest" },
     { name = "pytz" },
+    { name = "requests" },
 ]
 
 [package.dev-dependencies]
@@ -261,6 +262,7 @@ requires-dist = [
     { name = "pyiceberg", extras = ["pyarrow", "s3fs"], specifier = ">=0.12.0" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytz", specifier = ">=2026.5" },
+    { name = "requests", specifier = ">=2.34.2" },
 ]
 
 [package.metadata.requires-dev]

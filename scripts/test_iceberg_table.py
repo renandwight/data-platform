@@ -1,52 +1,19 @@
 
+"""Validate PyIceberg table creation, writing, and persistence."""
+
 import pyarrow as pa
-import requests
-from pyiceberg.catalog import load_catalog
 from pyiceberg.schema import Schema
 from pyiceberg.types import IntegerType, NestedField, StringType
-from test_polaris_connection import (
-    ENV_FILE,
-    POLARIS_URL,
-    REALM,
-    load_local_secrets,
-)
+
+from data_platform.config.settings import load_settings
+from data_platform.connections.polaris import create_iceberg_catalog
 
 TABLE = ("bronze", "integration_test")
 
 
 def main() -> None:
-    secrets = load_local_secrets(ENV_FILE)
-
-    # Authenticate with Polaris.
-    response = requests.post(
-        f"{POLARIS_URL}/api/catalog/v1/oauth/tokens",
-        headers={"Polaris-Realm": REALM},
-        auth=("root", secrets["POLARIS_CLIENT_SECRET"]),
-        data={
-            "grant_type": "client_credentials",
-            "scope": "PRINCIPAL_ROLE:ALL",
-        },
-        timeout=15,
-    )
-    response.raise_for_status()
-
-    catalog = load_catalog(
-        "lakehouse",
-        type="rest",
-        uri=f"{POLARIS_URL}/api/catalog",
-        warehouse="lakehouse",
-        token=response.json()["access_token"],
-        **{
-            "header.Polaris-Realm": REALM,
-            "header.X-Iceberg-Access-Delegation": "",
-            "py-io-impl": "pyiceberg.io.pyarrow.PyArrowFileIO",
-            "s3.endpoint": "http://127.0.0.1:9000",
-            "s3.region": "us-east-1",
-            "s3.access-key-id": secrets["POLARIS_S3_ACCESS_KEY"],
-            "s3.secret-access-key": secrets["POLARIS_S3_SECRET_KEY"],
-            "s3.force-virtual-addressing": False,
-        },
-    )
+    settings = load_settings()
+    catalog = create_iceberg_catalog(settings)
 
     schema = Schema(
         NestedField(
@@ -86,7 +53,7 @@ def main() -> None:
         ),
     )
 
-    # Append only if the test table is empty.
+    # Append only when the test table is empty.
     existing_rows = table.scan().to_arrow().num_rows
 
     if existing_rows == 0:
@@ -95,7 +62,7 @@ def main() -> None:
     else:
         print(f"Table already contains {existing_rows} rows.")
 
-    # Refresh metadata and verify persisted data.
+    # Reload table metadata and validate persisted records.
     table = catalog.load_table(TABLE)
     result = table.scan().to_arrow()
 
@@ -108,7 +75,9 @@ def main() -> None:
     }
 
     if result.to_pydict() != expected:
-        raise RuntimeError("Iceberg read-back validation failed.")
+        raise RuntimeError(
+            "Iceberg read-back validation failed."
+        )
 
     print("Iceberg integration test: PASSED")
 

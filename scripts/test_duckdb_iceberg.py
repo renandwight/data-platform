@@ -1,89 +1,50 @@
 
+"""Validate DuckDB integration with Polaris-managed Iceberg tables."""
 
-import duckdb
-import requests
-from test_polaris_connection import (
-    ENV_FILE,
-    POLARIS_URL,
-    REALM,
-    load_local_secrets,
+from data_platform.config.settings import load_settings
+from data_platform.connections.duckdb import (
+    attach_polaris_catalog,
+    configure_minio,
+    create_duckdb_connection,
 )
 
 
-def main():
-    secrets = load_local_secrets(ENV_FILE)
+def main() -> None:
+    settings = load_settings()
+    con = create_duckdb_connection()
 
-    response = requests.post(
-        f"{POLARIS_URL}/api/catalog/v1/oauth/tokens",
-        auth=("root", secrets["POLARIS_CLIENT_SECRET"]),
-        headers={"Polaris-Realm": REALM},
-        data={
-            "grant_type": "client_credentials",
-            "scope": "PRINCIPAL_ROLE:ALL",
-        },
-        timeout=15,
-    )
-    response.raise_for_status()
-    token = response.json()["access_token"]
+    try:
+        configure_minio(con, settings)
+        attach_polaris_catalog(con, settings)
 
-    con = duckdb.connect()
-    con.execute("LOAD iceberg")
-    con.execute("LOAD httpfs")
+        print("Catalogs:", con.execute("SHOW DATABASES").fetchall())
+        print("Tables:", con.execute("SHOW ALL TABLES").fetchall())
 
-    # Temporary S3 credentials for our existing MinIO bucket.
-    con.execute(
-        """
-        CREATE SECRET minio_iceberg (
-            TYPE S3,
-            KEY_ID ?,
-            SECRET ?,
-            REGION 'us-east-1',
-            ENDPOINT '127.0.0.1:9000',
-            URL_STYLE 'path',
-            USE_SSL false,
-            SCOPE 's3://iceberg/'
-        )
-        """,
-        [
-            secrets["POLARIS_S3_ACCESS_KEY"],
-            secrets["POLARIS_S3_SECRET_KEY"],
-        ],
-    )
+        rows = con.execute(
+            """
+            SELECT id, name
+            FROM polaris.bronze.integration_test
+            ORDER BY id
+            """
+        ).fetchall()
 
-    # Connect to the existing Polaris Iceberg REST catalog.
-    con.execute(
-        """
-        ATTACH 'lakehouse' AS polaris (
-            TYPE ICEBERG,
-            ENDPOINT 'http://127.0.0.1:8181/api/catalog',
-            TOKEN ?,
-            ACCESS_DELEGATION_MODE 'none',
-            EXTRA_HTTP_HEADERS MAP {
-                'Polaris-Realm': 'POLARIS'
-            }
-        )
-        """,
-        [token],
-    )
+        print("Iceberg records:", rows)
 
-    print("Catalogs:", con.execute("SHOW DATABASES").fetchall())
-    print("Tables:", con.execute("SHOW ALL TABLES").fetchall())
+        expected = [
+            (1, "bronze"),
+            (2, "silver"),
+            (3, "gold"),
+        ]
 
-    rows = con.execute(
-        """
-        SELECT id, name
-        FROM polaris.bronze.integration_test
-        ORDER BY id
-        """
-    ).fetchall()
+        if rows != expected:
+            raise RuntimeError(
+                f"Unexpected Iceberg records: {rows}"
+            )
 
-    print("Iceberg records:", rows)
+        print("DuckDB Iceberg integration test: PASSED")
 
-    expected = [(1, "bronze"), (2, "silver"), (3, "gold")]
-    assert rows == expected, f"Unexpected records: {rows}"
-
-    print("DuckDB Iceberg integration test: PASSED")
-    con.close()
+    finally:
+        con.close()
 
 
 if __name__ == "__main__":

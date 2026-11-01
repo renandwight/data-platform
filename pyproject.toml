@@ -15,6 +15,7 @@ dependencies = [
     "pyiceberg[pyarrow,s3fs]>=0.12.0",
     "pytest>=9.1.1",
     "pytz>=2026.5",
+    "requests>=2.34.2",
 ]
 
 [project.scripts]
@@ -28,3 +29,6 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
