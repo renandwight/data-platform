@@ -6,7 +6,6 @@ import duckdb
 import psycopg
 from psycopg import sql
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DUCKDB_PATH = PROJECT_ROOT / "dbt" / "data_platform" / "dev.duckdb"
 
@@ -44,7 +43,13 @@ def publish_full_refresh(
         row_count = 0
 
         # Psycopg commits on success and rolls back on exception.
-        with psycopg.connect(**connection_args) as target:
+        with psycopg.connect(
+            host=connection_args["host"],
+            port=connection_args["port"],
+            dbname=connection_args["dbname"],
+            user=connection_args["user"],
+            password=connection_args["password"],
+        ) as target:
             with target.cursor() as cursor:
                 table_identifier = sql.Identifier(
                     target_schema, target_table
