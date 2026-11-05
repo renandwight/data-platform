@@ -1,4 +1,3 @@
-
 """Unit tests for reusable Polaris connections."""
 
 from unittest.mock import Mock, patch
@@ -55,9 +54,7 @@ def test_get_polaris_token(mock_post, settings):
 @patch("data_platform.connections.polaris.requests.post")
 def test_authentication_failure(mock_post, settings):
     response = Mock()
-    response.raise_for_status.side_effect = requests.HTTPError(
-        "Authentication failed"
-    )
+    response.raise_for_status.side_effect = requests.HTTPError("Authentication failed")
     mock_post.return_value = response
 
     with pytest.raises(requests.HTTPError):
@@ -76,9 +73,7 @@ def test_missing_access_token(mock_post, settings):
 
 @patch("data_platform.connections.polaris.load_catalog")
 @patch("data_platform.connections.polaris.get_polaris_token")
-def test_create_iceberg_catalog(
-    mock_token, mock_catalog, settings
-):
+def test_create_iceberg_catalog(mock_token, mock_catalog, settings):
     mock_token.return_value = "test-token"
 
     catalog = create_iceberg_catalog(settings)

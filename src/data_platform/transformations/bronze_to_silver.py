@@ -1,4 +1,3 @@
-
 """Reusable Bronze-to-Silver transformation definitions."""
 
 BRONZE_TO_SILVER_SQL = """
@@ -49,6 +48,4 @@ def transform_bronze_to_silver(con):
 
     validate_source(con)
 
-    return con.execute(
-        BRONZE_TO_SILVER_SQL
-    ).fetchall()
+    return con.execute(BRONZE_TO_SILVER_SQL).fetchall()

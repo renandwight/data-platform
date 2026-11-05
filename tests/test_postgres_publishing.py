@@ -1,10 +1,27 @@
 import os
 
+import duckdb
 import psycopg
 import pytest
+from psycopg import sql
+
+from data_platform.publishing.postgres import publish_full_refresh
 
 
-def test_postgres_transaction_rollback():
+def test_publish_full_refresh_rolls_back_on_insert_failure(tmp_path):
+    duckdb_path = tmp_path / "test.duckdb"
+
+    with duckdb.connect(str(duckdb_path)) as source:
+        source.execute(
+            """
+            CREATE TABLE invalid_source (
+                id INTEGER,
+                name VARCHAR
+            )
+            """
+        )
+        source.execute("INSERT INTO invalid_source VALUES (1, 'invalid')")
+
     connection_args = {
         "host": os.environ["POSTGRES_HOST"],
         "port": os.environ["POSTGRES_PORT"],
@@ -12,6 +29,9 @@ def test_postgres_transaction_rollback():
         "user": os.environ["POSTGRES_USER"],
         "password": os.environ["POSTGRES_PASSWORD"],
     }
+
+    table_name = "test_publisher_rollback"
+    table_identifier = sql.Identifier("gold", table_name)
 
     with psycopg.connect(
         host=connection_args["host"],
@@ -22,16 +42,23 @@ def test_postgres_transaction_rollback():
     ) as connection:
         with connection.cursor() as cursor:
             cursor.execute(
-                "SELECT COUNT(*) FROM gold.dim_customers"
+                sql.SQL(
+                    "CREATE TABLE {} (id INTEGER PRIMARY KEY, name INTEGER NOT NULL)"
+                ).format(table_identifier)
             )
-            row = cursor.fetchone()
+            cursor.execute(
+                sql.SQL("INSERT INTO {} VALUES (99, 100)").format(table_identifier)
+            )
 
-            if row is None:
-                raise RuntimeError("Failed to retrieve original row count")
+    try:
+        with pytest.raises(psycopg.errors.InvalidTextRepresentation):
+            publish_full_refresh(
+                source_table="invalid_source",
+                target_schema="gold",
+                target_table=table_name,
+                source_path=duckdb_path,
+            )
 
-            original_count = row[0]
-
-    with pytest.raises(RuntimeError):
         with psycopg.connect(
             host=connection_args["host"],
             port=connection_args["port"],
@@ -41,29 +68,21 @@ def test_postgres_transaction_rollback():
         ) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "DELETE FROM gold.dim_customers"
+                    sql.SQL("SELECT id, name FROM {}").format(table_identifier)
                 )
+                rows = cursor.fetchall()
 
-                raise RuntimeError(
-                    "Simulated failure before commit"
+        assert rows == [(99, 100)]
+
+    finally:
+        with psycopg.connect(
+            host=connection_args["host"],
+            port=connection_args["port"],
+            dbname=connection_args["dbname"],
+            user=connection_args["user"],
+            password=connection_args["password"],
+        ) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    sql.SQL("DROP TABLE IF EXISTS {}").format(table_identifier)
                 )
-
-    with psycopg.connect(
-        host=connection_args["host"],
-        port=connection_args["port"],
-        dbname=connection_args["dbname"],
-        user=connection_args["user"],
-        password=connection_args["password"],
-    ) as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT COUNT(*) FROM gold.dim_customers"
-            )
-            row = cursor.fetchone()
-
-            if row is None:
-                raise RuntimeError("Failed to retrieve original row count")
-
-            final_count = row[0]
-
-    assert final_count == original_count

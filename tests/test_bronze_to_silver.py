@@ -1,4 +1,3 @@
-
 """Unit tests for Bronze-to-Silver transformations."""
 
 import duckdb

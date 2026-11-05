@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: silver
+    database: polaris
+    schema: silver
+    description: "Silver Iceberg tables managed by Apache Polaris."
+
+    tables:
+      - name: integration_test
+        description: "Persisted Silver integration test records."
+        columns:
+          - name: id
+            data_tests:
+              - not_null
+              - unique
+
+          - name: name
+            data_tests:
+              - not_null
+
+          - name: name_length
+            data_tests:
+              - not_null

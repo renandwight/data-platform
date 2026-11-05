@@ -1,4 +1,3 @@
-
 import os
 from pathlib import Path
 
@@ -15,6 +14,7 @@ def publish_full_refresh(
     target_schema: str,
     target_table: str,
     batch_size: int = 1000,
+    source_path: Path | None = None,
 ) -> int:
     """Replace PostgreSQL table contents in one transaction."""
 
@@ -22,13 +22,14 @@ def publish_full_refresh(
         raise ValueError("batch_size must be greater than zero")
 
     # Use a read-only connection to the dbt development database.
-    source = duckdb.connect(str(DUCKDB_PATH), read_only=True)
+    source = duckdb.connect(
+        str(source_path if source_path is not None else DUCKDB_PATH),
+        read_only=True,
+    )
 
     try:
         # Source identifiers are quoted to avoid SQL injection.
-        source_query = (
-            f"SELECT * FROM {duckdb_identifier(source_table)}"
-        )
+        source_query = f"SELECT * FROM {duckdb_identifier(source_table)}"
         result = source.execute(source_query)
         columns = [column[0] for column in result.description]
 
@@ -51,26 +52,14 @@ def publish_full_refresh(
             password=connection_args["password"],
         ) as target:
             with target.cursor() as cursor:
-                table_identifier = sql.Identifier(
-                    target_schema, target_table
-                )
+                table_identifier = sql.Identifier(target_schema, target_table)
 
-                cursor.execute(
-                    sql.SQL("DELETE FROM {}").format(
-                        table_identifier
-                    )
-                )
+                cursor.execute(sql.SQL("DELETE FROM {}").format(table_identifier))
 
-                insert_statement = sql.SQL(
-                    "INSERT INTO {} ({}) VALUES ({})"
-                ).format(
+                insert_statement = sql.SQL("INSERT INTO {} ({}) VALUES ({})").format(
                     table_identifier,
-                    sql.SQL(", ").join(
-                        sql.Identifier(column) for column in columns
-                    ),
-                    sql.SQL(", ").join(
-                        sql.Placeholder() for _ in columns
-                    ),
+                    sql.SQL(", ").join(sql.Identifier(column) for column in columns),
+                    sql.SQL(", ").join(sql.Placeholder() for _ in columns),
                 )
 
                 while True:
@@ -91,8 +80,6 @@ def publish_full_refresh(
 def duckdb_identifier(name: str) -> str:
     """Quote a single DuckDB table identifier."""
     if not name or "." in name:
-        raise ValueError(
-            "Provide an unqualified DuckDB table name"
-        )
+        raise ValueError("Provide an unqualified DuckDB table name")
 
     return '"' + name.replace('"', '""') + '"'

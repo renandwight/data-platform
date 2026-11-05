@@ -1,4 +1,3 @@
-
 """Validate DuckDB integration with Polaris-managed Iceberg tables."""
 
 from data_platform.config.settings import load_settings
@@ -37,9 +36,7 @@ def main() -> None:
         ]
 
         if rows != expected:
-            raise RuntimeError(
-                f"Unexpected Iceberg records: {rows}"
-            )
+            raise RuntimeError(f"Unexpected Iceberg records: {rows}")
 
         print("DuckDB Iceberg integration test: PASSED")
 

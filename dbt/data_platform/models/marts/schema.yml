@@ -1,15 +1,19 @@
 version: 2
 
 models:
-  - name: dim_customers
-    description: "Customer dimension prepared for PostgreSQL Gold."
+  - name: dim_integration_test
+    description: "Integration-validation mart for PostgreSQL Gold publishing."
 
     columns:
-      - name: customer_id
+      - name: id
         data_tests:
           - unique
           - not_null
 
-      - name: customer_name
+      - name: name
+        data_tests:
+          - not_null
+
+      - name: name_length
         data_tests:
           - not_null

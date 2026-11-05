@@ -1,4 +1,3 @@
-
 """Tests for centralized configuration management."""
 
 import pytest

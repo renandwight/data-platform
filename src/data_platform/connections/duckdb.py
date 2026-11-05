@@ -1,4 +1,3 @@
-
 """Reusable DuckDB connections for Polaris-managed Iceberg tables."""
 
 from urllib.parse import urlparse
@@ -21,6 +20,7 @@ def create_duckdb_connection() -> duckdb.DuckDBPyConnection:
         raise
 
     return con
+
 
 def configure_minio(
     con: duckdb.DuckDBPyConnection,
@@ -54,6 +54,7 @@ def configure_minio(
         ],
     )
 
+
 def attach_polaris_catalog(
     con: duckdb.DuckDBPyConnection,
     settings: Settings,
@@ -80,4 +81,3 @@ def attach_polaris_catalog(
         )
         """
     )
-

@@ -1,4 +1,3 @@
-
 import argparse
 
 from data_platform.publishing.postgres import publish_full_refresh

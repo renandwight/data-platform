@@ -22,10 +22,6 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-# Initialize MinIO authentication before model execution
-on-run-start:
-  - "{{ configure_minio() }}"
-
 # Configuring models
 # Full documentation: https://docs.getdbt.com/docs/configuring-models
 
@@ -36,9 +32,6 @@ models:
   data_platform:
     # Config indicated by + and applies to all files under models/example/
     staging:
-      +materialized: view
-
-    intermediate:
       +materialized: view
 
     marts:

@@ -1,4 +1,3 @@
-
 """Transform Bronze Iceberg data and persist it into Silver."""
 
 import pyarrow as pa

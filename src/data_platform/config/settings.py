@@ -1,4 +1,3 @@
-
 """Centralized configuration for data platform integrations."""
 
 import os
@@ -25,9 +24,7 @@ def load_env_file(path: Path) -> dict[str, str]:
         key, separator, value = line.partition("=")
 
         if not separator:
-            raise ValueError(
-                f"Invalid configuration entry at line {line_number}"
-            )
+            raise ValueError(f"Invalid configuration entry at line {line_number}")
 
         values[key.strip()] = value.strip().strip("\"'")
 
@@ -64,22 +61,16 @@ def load_settings(env_file: Path = DEFAULT_ENV_FILE) -> Settings:
     missing = [name for name in required if not get_value(name)]
 
     if missing:
-        raise ValueError(
-            "Missing required configuration: " + ", ".join(missing)
-        )
+        raise ValueError("Missing required configuration: " + ", ".join(missing))
 
     return Settings(
-        polaris_url=get_value(
-            "POLARIS_URL", "http://127.0.0.1:8181"
-        ),
+        polaris_url=get_value("POLARIS_URL", "http://127.0.0.1:8181"),
         polaris_realm=get_value("POLARIS_REALM", "POLARIS"),
         polaris_catalog=get_value("POLARIS_CATALOG", "lakehouse"),
         polaris_warehouse=get_value("POLARIS_WAREHOUSE", "lakehouse"),
         polaris_client_id=get_value("POLARIS_CLIENT_ID", "root"),
         polaris_client_secret=get_value("POLARIS_CLIENT_SECRET"),
-        minio_endpoint=get_value(
-            "MINIO_ENDPOINT", "http://127.0.0.1:9000"
-        ),
+        minio_endpoint=get_value("MINIO_ENDPOINT", "http://127.0.0.1:9000"),
         minio_region=get_value("MINIO_REGION", "us-east-1"),
         minio_access_key=get_value("POLARIS_S3_ACCESS_KEY"),
         minio_secret_key=get_value("POLARIS_S3_SECRET_KEY"),

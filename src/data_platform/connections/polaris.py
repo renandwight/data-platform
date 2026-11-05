@@ -1,4 +1,3 @@
-
 """Reusable Apache Polaris authentication and PyIceberg connections."""
 
 import requests

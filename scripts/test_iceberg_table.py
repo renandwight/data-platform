@@ -1,4 +1,3 @@
-
 """Validate PyIceberg table creation, writing, and persistence."""
 
 import pyarrow as pa
@@ -75,9 +74,7 @@ def main() -> None:
     }
 
     if result.to_pydict() != expected:
-        raise RuntimeError(
-            "Iceberg read-back validation failed."
-        )
+        raise RuntimeError("Iceberg read-back validation failed.")
 
     print("Iceberg integration test: PASSED")
 
