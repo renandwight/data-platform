@@ -43,6 +43,7 @@ class Settings:
     minio_region: str
     minio_access_key: str
     minio_secret_key: str
+    socrata_app_token: str = ""
 
 
 def load_settings(env_file: Path = DEFAULT_ENV_FILE) -> Settings:
@@ -74,4 +75,5 @@ def load_settings(env_file: Path = DEFAULT_ENV_FILE) -> Settings:
         minio_region=get_value("MINIO_REGION", "us-east-1"),
         minio_access_key=get_value("POLARIS_S3_ACCESS_KEY"),
         minio_secret_key=get_value("POLARIS_S3_SECRET_KEY"),
+        socrata_app_token=get_value("SOCRATA_APP_TOKEN"),
     )

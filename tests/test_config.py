@@ -54,3 +54,19 @@ def test_environment_override(tmp_path, monkeypatch):
 
     assert settings.polaris_client_secret == "environment-secret"
     assert settings.polaris_catalog == "lakehouse"
+
+
+def test_socrata_app_token_from_environment(monkeypatch, tmp_path):
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "POLARIS_CLIENT_SECRET=test-secret\n"
+        "POLARIS_S3_ACCESS_KEY=test-access\n"
+        "POLARIS_S3_SECRET_KEY=test-secret-key\n"
+        "SOCRATA_APP_TOKEN=file-token\n"
+    )
+
+    monkeypatch.setenv("SOCRATA_APP_TOKEN", "environment-token")
+
+    settings = load_settings(env_file)
+
+    assert settings.socrata_app_token == "environment-token"
