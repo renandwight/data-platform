@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: int_contract_vendor_lines
+    description: >
+      Contract-version-vendor associations from the City of Austin
+      Contracts dataset. One row per source ROW_KEY.
+
+    columns:
+      - name: row_key
+        data_tests:
+          - not_null
+          - unique
+
+      - name: doc_cd
+        data_tests:
+          - not_null
+
+      - name: doc_dept_cd
+        data_tests:
+          - not_null
+
+      - name: doc_id
+        data_tests:
+          - not_null
+
+      - name: doc_vers_no
+        data_tests:
+          - not_null
+
+      - name: doc_vend_ln_no
+        data_tests:
+          - not_null
+
+      - name: vend_cust_cd
+        data_tests:
+          - not_null

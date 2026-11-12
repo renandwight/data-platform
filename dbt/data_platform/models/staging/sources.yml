@@ -22,3 +22,25 @@ sources:
           - name: name_length
             data_tests:
               - not_null
+
+      - name: contracts
+        description: "City of Austin Contracts records transformed and persisted in Silver Iceberg."
+        columns:
+          - name: row_key
+            data_tests:
+              - not_null
+              - unique
+
+          - name: ma_prch_lmt_am
+            description: "Purchase limit amount, stored as DECIMAL(18,2)."
+
+          - name: ma_itd_ord_am
+            description: "Ordered amount, stored as DECIMAL(18,2)."
+
+          - name: ma_do_rfed_am
+            description: "Referenced amount, stored as DECIMAL(18,2)."
+
+          - name: brd_awd_dt_invalid
+            description: "True when a populated board award date fails Silver validation."
+            data_tests:
+              - not_null

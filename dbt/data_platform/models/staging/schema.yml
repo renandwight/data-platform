@@ -17,3 +17,44 @@ models:
       - name: name_length
         data_tests:
           - not_null
+
+  - name: stg_contracts
+    description: >
+      Staging view of City of Austin Contracts data from Silver Iceberg.
+      Grain: one record per row_key. Contract document IDs are not
+      necessarily unique.
+
+    columns:
+      - name: row_key
+        description: "Unique source record identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: doc_id
+        description: "Source contract document identifier; not necessarily unique."
+
+      - name: vend_cust_cd
+        description: "Source vendor/customer code."
+
+      - name: ma_prch_lmt_am
+        description: "Contract purchase limit amount."
+
+      - name: ma_itd_ord_am
+        description: "Contract ordered amount."
+
+      - name: ma_do_rfed_am
+        description: "Contract referenced amount."
+
+      - name: brd_awd_dt_raw
+        description: "Original board award date retained for traceability."
+
+      - name: brd_awd_dt_invalid
+        description: "Indicates a populated board award date failed validation."
+        data_tests:
+          - not_null
+
+      - name: _ingested_at
+        description: "UTC timestamp of Bronze ingestion."
+        data_tests:
+          - not_null

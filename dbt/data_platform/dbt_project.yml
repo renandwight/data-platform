@@ -30,8 +30,10 @@ clean-targets:
 # files using the `{{ config(...) }}` macro.
 models:
   data_platform:
-    # Config indicated by + and applies to all files under models/example/
     staging:
+      +materialized: view
+
+    intermediate:
       +materialized: view
 
     marts:
